@@ -1,9 +1,9 @@
 const express = require('express');
 const connectDB = require('./config/db');
 const costRoutes = require('./routes/costs');
+const reportRoutes = require('./routes/reports');
 const userRoutes = require('./routes/users');
 const aboutRoute = require('./routes/about');
-
 require('dotenv').config();
 
 const app = express();
@@ -13,6 +13,7 @@ app.use(express.json()); // מאפשר JSON מהלקוח
 
 // נתיבים
 app.use('/api', costRoutes);        // לדוגמת: /api/add, /api/report
+app.use('/api', reportRoutes);
 app.use('/api/users', userRoutes);  // לדוגמת: /api/users/:id
 app.use('/api/about', aboutRoute);
 

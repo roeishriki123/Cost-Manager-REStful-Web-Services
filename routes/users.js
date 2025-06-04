@@ -6,7 +6,7 @@ const Cost = require('../models/Cost');
 // GET /api/users/:id
 router.get('/:id', async (req, res) => {
     try {
-        const userId = req.params.id;
+        const userId = parseInt(req.params.id);
 
         const user = await User.findOne({ id: userId });
         if (!user) {

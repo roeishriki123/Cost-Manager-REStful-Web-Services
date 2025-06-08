@@ -2,13 +2,24 @@ const express = require('express');
 const router = express.Router();
 const Cost = require('../models/Cost');
 
-// GET /api/report
-router.get('/report', async (req, res) => {
+/**
+ * Generates a monthly cost report for a specific user.
+ *
+ * @param {express.Request} req - Express request object
+ * @param {number} req.query.id - The user ID
+ * @param {number} req.query.year - The report year
+ * @param {number} req.query.month - The report month (1–12)
+ * @param {express.Response} res - Express response object
+ *
+ * @returns {Promise<void>} A JSON report containing categorized costs
+ */
+async function getMonthlyReport(req, res) {
     try {
         const id = parseInt(req.query.id);
         const year = parseInt(req.query.year);
         const month = parseInt(req.query.month);
 
+        // Check for missing query parameters
         if (!id || !year || !month) {
             return res.status(400).json({ error: 'Missing required query parameters: id, year, month' });
         }
@@ -18,21 +29,24 @@ router.get('/report', async (req, res) => {
 
         const costs = await Cost.find({
             userid: id,
-            created_at: { $gte: fromDate, $lt: toDate }
+            date: { $gte: fromDate, $lt: toDate }
         });
 
         const categories = ['food', 'health', 'housing', 'sport', 'education'];
+
+        // Initialize an empty array for each category
         const groupedCosts = {};
 
         for (const category of categories) {
             groupedCosts[category] = [];
         }
 
+        // Group each cost item by its category
         for (const cost of costs) {
             groupedCosts[cost.category].push({
                 sum: cost.sum,
                 description: cost.description,
-                day: new Date(cost.created_at).getDate()
+                day: new Date(cost.date).getDate()
             });
         }
 
@@ -40,6 +54,7 @@ router.get('/report', async (req, res) => {
             [category]: groupedCosts[category]
         }));
 
+        // Construct the final report object
         const report = {
             userid: id,
             year,
@@ -51,6 +66,9 @@ router.get('/report', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-});
+}
+
+// Define the GET /report route and attach the handler
+router.get('/report', getMonthlyReport);
 
 module.exports = router;
